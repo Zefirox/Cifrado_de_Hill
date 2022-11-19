@@ -1,10 +1,11 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Hill {
     //test
 
-    public static final char[] CHARACTERS_SPACE = new char[] {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' '};
+    public static final char[] CHARACTERS_SPACE = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' '};
     public static final Scanner SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -12,10 +13,40 @@ public class Hill {
 //        int separator = inputInt("Ingrese el separador: ", message.length);
         int[][] key = keyChecker(inputString("Ingrese la llave:"), message.length);
 
-        for (int[] c : key){
+
+        for (int[] c : key) {
             System.out.println(Arrays.toString(c));
         }
 
+        System.out.println(Arrays.toString(codificate(message,3)));
+
+    }
+
+    public static int[][] codificate(char[] msgChar, int split) {
+        ArrayList<Integer> msgToNumbers = new ArrayList<>();
+
+        int position = 0;
+        for (char caracter : msgChar) {
+            if (Arrays.toString(CHARACTERS_SPACE).contains(String.valueOf(caracter))) {
+                msgToNumbers.add(getPosition(caracter));
+                position++;
+            }
+        }
+        int[] arrayEntero = msgToNumbers.stream().mapToInt(i -> i).toArray();
+        int[][] matrizFinal = new int[split][msgChar.length/split];
+
+        return matrizFinal;
+
+
+    }
+
+    private static int getPosition(final char c) {
+        for (int i = 0; i < CHARACTERS_SPACE.length; i++) {
+            if (CHARACTERS_SPACE[i] == c) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     public static int inputInt(Object message, int max) {
@@ -58,21 +89,21 @@ public class Hill {
         System.out.println(message);
     }
 
-    public static int[][] keyChecker(String key, int length){
+    public static int[][] keyChecker(String key, int length) {
 
         int[][] keyMatrix = new int[0][0];
 
-        for (int i = 2; i < length || i < key.length(); i++){
-            if (key.length() == i*i){
+        for (int i = 2; i < length || i < key.length(); i++) {
+            if (key.length() == i * i) {
 
                 keyMatrix = new int[i][i];
                 int cont = 0;
 
-                for (int j = 0; j < i; j++){
-                    for (int k = 0; k < i; k++){
-                        for (int m = 0; m < CHARACTERS_SPACE.length; m++){
+                for (int j = 0; j < i; j++) {
+                    for (int k = 0; k < i; k++) {
+                        for (int m = 0; m < CHARACTERS_SPACE.length; m++) {
 
-                            if (key.charAt(cont) == CHARACTERS_SPACE[m]){
+                            if (key.charAt(cont) == CHARACTERS_SPACE[m]) {
                                 keyMatrix[k][j] = m;
                                 cont++;
                                 break;
@@ -85,9 +116,9 @@ public class Hill {
             }
         }
 
-        int determinant = determinanteMatriz(keyMatrix,keyMatrix.length);
+        int determinant = determinanteMatriz(keyMatrix, keyMatrix.length);
 
-        if (determinant == 0 || determinant == 27){
+        if (determinant == 0 || determinant == 27) {
             showInfo("La llave no es valida, intente con una diferente");
             return keyChecker(inputString("Ingrese la llave:"), length);
         }
@@ -96,46 +127,45 @@ public class Hill {
         return keyMatrix;
     }
 
-    public static int determinanteMatriz(int x[][], int N){
-        int det=0;
-        switch(N){
+    public static int determinanteMatriz(int x[][], int N) {
+        int det = 0;
+        switch (N) {
             case 0:
                 break;
             case 2:
-                det=((x[0][0]*x[1][1])-(x[1][0]*x[0][1]));
+                det = ((x[0][0] * x[1][1]) - (x[1][0] * x[0][1]));
                 break;
             case 3:
-                det=((x[0][0])*(x[1][1])*(x[2][2])+(x[1][0])*(x[2][1])*(x[0][2])+(x[2][0])*(x[0][1])*(x[1][2]))-((x[2][0])*(x[1][1])*(x[0][2])+(x[1][0])*(x[0][1])*(x[2][2])+(x[0][0])*(x[2][1])*(x[1][2]));
+                det = ((x[0][0]) * (x[1][1]) * (x[2][2]) + (x[1][0]) * (x[2][1]) * (x[0][2]) + (x[2][0]) * (x[0][1]) * (x[1][2])) - ((x[2][0]) * (x[1][1]) * (x[0][2]) + (x[1][0]) * (x[0][1]) * (x[2][2]) + (x[0][0]) * (x[2][1]) * (x[1][2]));
                 break;
             default:
-                for(int z=0;z<x.length;z++){
-                    det+=(x[z][0]*adj(x,z,0));
+                for (int z = 0; z < x.length; z++) {
+                    det += (x[z][0] * adj(x, z, 0));
                 }
         }
         return det;
     }
-    public static int adj(int x[][], int i, int j){
+
+    public static int adj(int x[][], int i, int j) {
         int adjunto;
-        int y[][]=new int[x.length-1][x.length-1];
-        int m,n;
-        for(int k=0;k<y.length;k++){
-            if(k<i){
-                m=k;
+        int y[][] = new int[x.length - 1][x.length - 1];
+        int m, n;
+        for (int k = 0; k < y.length; k++) {
+            if (k < i) {
+                m = k;
+            } else {
+                m = k + 1;
             }
-            else{
-                m=k+1;
-            }
-            for(int l=0;l<y.length;l++){
-                if(l<j){
-                    n=l;
+            for (int l = 0; l < y.length; l++) {
+                if (l < j) {
+                    n = l;
+                } else {
+                    n = l + 1;
                 }
-                else{
-                    n=l+1;
-                }
-                y[k][l]=x[m][n];
+                y[k][l] = x[m][n];
             }
         }
-        adjunto=(int)Math.pow(-1,i+j)*determinanteMatriz(y, y.length);
+        adjunto = (int) Math.pow(-1, i + j) * determinanteMatriz(y, y.length);
         return adjunto;
     }
 }
