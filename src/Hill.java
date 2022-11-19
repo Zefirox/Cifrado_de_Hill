@@ -1,42 +1,118 @@
-import java.util.ArrayList;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.RealMatrix;
+
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Hill {
-    //test
 
-    public static final char[] CHARACTERS_SPACE = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' '};
+    public static final char[] CHARACTERS_SPACE = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
     public static final Scanner SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
         char[] message = inputString("Ingrese un mensaje a cifrar:").toCharArray();
-//        int separator = inputInt("Ingrese el separador: ", message.length);
         int[][] key = keyChecker(inputString("Ingrese la llave:"), message.length);
 
-
+        System.out.println("Llave:");
         for (int[] c : key) {
             System.out.println(Arrays.toString(c));
         }
+        System.out.println("\n");
+        int[][] msg = codificate(message, key.length);
+        System.out.println("Mensaje");
+        for (int[] c:msg){
+            System.out.println(Arrays.toString(c));
+        }
+        System.out.println("\n");
+        int[][] newMessage = encrypt(msg,key);
+        System.out.println("Mensaje Encriptado");
+        for (int[] c:newMessage){
+            System.out.println(Arrays.toString(c));
+        }
+        System.out.println("\nNuevo Mensaje");
+        String mensaje = "";
+        for (int i = 0; i < newMessage[i].length; i++) {
+            for (int j = 0; j < newMessage.length; j++) {
+                mensaje += CHARACTERS_SPACE[newMessage[j][i]];
+            }
+        }
+        System.out.println(mensaje);
 
-        System.out.println(Arrays.toString(codificate(message,3)));
+    }
+
+    public static int[][] encrypt(int[][] message, int[][] key){
+
+        double[][] msgDouble = new double[message.length][message[0].length];
+        double[][] keyDouble = new double[key.length][key[0].length];
+
+        for (int i = 0; i < msgDouble.length; i++){
+            for (int j = 0; j < msgDouble[i].length; j++){
+
+                msgDouble[i][j] = message[i][j];
+
+            }
+        }
+        for (int i = 0; i < keyDouble.length; i++){
+            for (int j = 0; j < keyDouble[i].length; j++){
+
+                keyDouble[i][j] = key[i][j];
+
+            }
+        }
+
+        RealMatrix msg = new Array2DRowRealMatrix(msgDouble);
+        RealMatrix k = new Array2DRowRealMatrix(keyDouble);
+
+        double[][] aux = k.multiply(msg).getData();
+
+        int[][] newMsg = new int[message.length][message[0].length];
+
+        for (int i = 0; i < msgDouble.length; i++){
+            for (int j = 0; j < msgDouble[i].length; j++){
+
+                newMsg[i][j] = (int) (aux[i][j]%CHARACTERS_SPACE.length);
+
+            }
+        }
+
+        return newMsg;
 
     }
 
     public static int[][] codificate(char[] msgChar, int split) {
-        ArrayList<Integer> msgToNumbers = new ArrayList<>();
 
-        int position = 0;
-        for (char caracter : msgChar) {
-            if (Arrays.toString(CHARACTERS_SPACE).contains(String.valueOf(caracter))) {
-                msgToNumbers.add(getPosition(caracter));
-                position++;
+        int aux;
+
+        if (msgChar.length%split == 0){
+            aux = msgChar.length/split;
+        }else {
+            aux = (msgChar.length/split)+1;
+        }
+
+        int[][] msgMatrix = new int[split][aux];
+        int cont = 0;
+        int[] extras = new int[(aux*split)-msgChar.length];
+        int exCont = 0;
+
+        for (int i = 0; i < msgMatrix[0].length; i++){
+            for (int j = 0; j < split; j++){
+                int extra = 0;
+                if (cont >= msgChar.length){
+                    extra = (int) (Math.random()*CHARACTERS_SPACE.length);
+                    msgMatrix[j][i] = extra;
+                    extras[exCont] = extra;
+                    cont++;
+                    exCont++;
+                }else{
+                    msgMatrix[j][i] = getPosition(msgChar[cont]);
+                    cont++;
+                }
             }
         }
-        int[] arrayEntero = msgToNumbers.stream().mapToInt(i -> i).toArray();
-        int[][] matrizFinal = new int[split][msgChar.length/split];
 
-        return matrizFinal;
+        System.out.println("Caracteres extras: "+Arrays.toString(extras));
 
+        return msgMatrix;
 
     }
 
