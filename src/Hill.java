@@ -1,14 +1,15 @@
+import Jama.Matrix;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import java.sql.SQLOutput;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Hill {
 
-    public static final char[] CHARACTERS_SPACE = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+    public static final char[] CHARACTERS_SPACE = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '_'};
     public static final Scanner SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -34,25 +35,34 @@ public class Hill {
         }
         System.out.println("\nNuevo Mensaje");
         StringBuilder mensaje = new StringBuilder();
+        System.out.println(newMessage.length);
+
         for (int i = 0; i < newMessage[i].length; i++) {
-            for (int j = 0; j < newMessage.length; j++) {
-                mensaje.append(CHARACTERS_SPACE[newMessage[j][i]]);
+            try {
+                for (int j = 0; j < newMessage.length; j++) {
+
+                    mensaje.append(CHARACTERS_SPACE[newMessage[j][i]]);
+                }
+            } catch (Exception e) {
+                break;
             }
         }
         System.out.println(mensaje);
 
         System.out.println("------------{DECRYPT}-------------");
-        int[][] finalCrypt = decrypt(key, newMessage);
+        double[][] finalCrypt = desencriptar(key, newMessage);
         StringBuilder mensajeFinal = new StringBuilder();
         System.out.println("Mensaje desencriptado \n");
         for (int i = 0; i < finalCrypt[i].length; i++) {
             for (int j = 0; j < finalCrypt.length; j++) {
-                mensajeFinal.append(CHARACTERS_SPACE[finalCrypt[j][i]]);
+                try {
+                    mensajeFinal.append(CHARACTERS_SPACE[(int) finalCrypt[j][i]]);
+                } catch (Exception e) {
+                    break;
+                }
             }
         }
         System.out.println(mensajeFinal);
-
-
     }
 
     public static int[][] encrypt(int[][] message, int[][] key) {
@@ -69,9 +79,7 @@ public class Hill {
         }
         for (int i = 0; i < keyDouble.length; i++) {
             for (int j = 0; j < keyDouble[i].length; j++) {
-
                 keyDouble[i][j] = key[i][j];
-
             }
         }
 
@@ -84,12 +92,9 @@ public class Hill {
 
         for (int i = 0; i < msgDouble.length; i++) {
             for (int j = 0; j < msgDouble[i].length; j++) {
-
                 newMsg[i][j] = (int) (aux[i][j] % CHARACTERS_SPACE.length);
-
             }
         }
-
         return newMsg;
     }
 
@@ -108,7 +113,6 @@ public class Hill {
                 encryptedMessageDouble[i][j] = encryptedMsg[i][j];
             }
         }
-
 
         RealMatrix kDoubleReal = new Array2DRowRealMatrix(kDouble);
         RealMatrix kInverted = MatrixUtils.inverse(kDoubleReal);
@@ -159,6 +163,70 @@ public class Hill {
             }
         }
         return desencriptado;
+    }
+
+    //primero sacar el inverso modular de la clave
+    //teniendo en cuenta que las matrices estan codificadas sacar la determinante
+    //se saca la inversa de la matriz de la clave y multiplicar por la determinante de la matriz clave y ese resultado multiplicar por el inverso modular
+    //sacarle el modulo
+
+    public static double[][] desencriptar(int[][] k, int[][] mensajeCifrado) {
+        double determinanteClave = determinanteMatriz(k, k.length);
+        long inversoModular = (new BigInteger(String.valueOf((int) determinanteClave)).modInverse(new BigInteger(String.valueOf(CHARACTERS_SPACE.length))).longValue());
+
+        //pasando todo a double
+        double[][] kDouble = new double[k.length][k[0].length];
+        for (int i = 0; i < kDouble.length; i++) {
+            for (int j = 0; j < kDouble[0].length; j++) {
+                kDouble[i][j] = k[i][j];
+            }
+        }
+        //pasandolo a realmatrix
+        RealMatrix kRealMatrix = new Array2DRowRealMatrix(kDouble);
+        RealMatrix kInverted = MatrixUtils.inverse(kRealMatrix);
+
+        double[][] kInvedtedInDouble = kInverted.getData();
+
+        //Multiplicar por la determinante de la matriz
+
+        double[][] invertidaPorLaDeter = new double[kInvedtedInDouble.length][kInvedtedInDouble[0].length];
+
+        for (int i = 0; i < kInvedtedInDouble.length; i++) {
+            for (int j = 0; j < kInvedtedInDouble[0].length; j++) {
+                invertidaPorLaDeter[i][j] = kInvedtedInDouble[i][j] * determinanteClave;
+                invertidaPorLaDeter[i][j] = invertidaPorLaDeter[i][j] * inversoModular;
+            }
+        }
+
+        RealMatrix claveFinal = new Array2DRowRealMatrix(invertidaPorLaDeter);
+
+        //Mensaje a double y a RealMatrix
+        double[][] mensajeDouble = new double[mensajeCifrado.length][mensajeCifrado[0].length];
+        for (int i = 0; i < mensajeDouble.length; i++) {
+            for (int j = 0; j < mensajeDouble[0].length; j++) {
+                mensajeDouble[i][j] = mensajeCifrado[i][j];
+            }
+        }
+        RealMatrix mensajeRealMatrix = new Array2DRowRealMatrix(mensajeDouble);
+
+        //Multiplicar y sacar el modulo
+        RealMatrix multiplicacion = claveFinal.multiply(mensajeRealMatrix);
+
+        double[][] multiplicacionDouble = multiplicacion.getData();
+
+        double[][] aux = new double[multiplicacionDouble.length][multiplicacionDouble[0].length];
+        for (int i = 0; i < multiplicacionDouble.length; i++) {
+            for (int j = 0; j < multiplicacionDouble[0].length; j++) {
+                if (multiplicacionDouble[i][j] < 0) {
+                    aux[i][j] = CHARACTERS_SPACE.length - Math.abs(multiplicacionDouble[i][j] % CHARACTERS_SPACE.length);
+                    aux[i][j] = Math.rint(aux[i][j]);
+                } else {
+                    aux[i][j] = (multiplicacionDouble[i][j]) % CHARACTERS_SPACE.length;
+                    aux[i][j] = Math.rint(aux[i][j]);
+                }
+            }
+        }
+        return aux;
     }
 
     public static int[][] codificate(char[] msgChar, int split) {
