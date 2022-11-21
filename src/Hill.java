@@ -7,6 +7,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import java.math.BigInteger;
 import java.text.Normalizer;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -17,74 +18,134 @@ public class Hill {
     /**
      * Espacio de caracteres permitido para la encriptación y desencriptación.
      */
-    public static final char[] CHARACTERS_SPACE = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '_'};
+    public static final char[] CHARACTERS_SPACE = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '_', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
     /**
      * Scanner para pedir datos por consola al usuario.
      */
     public static final Scanner SCANNER = new Scanner(System.in);
 
+/*    public static String genRandomText(int length) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            stringBuilder.append(CHARACTERS_SPACE[new Random().nextInt(CHARACTERS_SPACE.length)]);
+        }
+        return stringBuilder.toString();
+    }*/
+
+/*    public static boolean getEncodedKeyMatrix2(char[] key, char[] message) {
+        try {
+            Matrix matrix = new Matrix(keyChecker(key, message.length));
+            double determinant = Math.abs(Math.rint(getDeterminantOf(matrix)));
+            long inversoModular = (new BigInteger(String.valueOf((int) determinant)).modInverse(new BigInteger(String.valueOf(CHARACTERS_SPACE.length))).longValue());
+            if (determinant == 0 || determinant == CHARACTERS_SPACE.length || determinant % CHARACTERS_SPACE.length == 0) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }*/
+
+//    public static void main(String[] args) {
+//        int iterations = 0;
+//        int messageCounter = 1;
+//        int keyCounter = 2;
+//        do {
+//            for (int i = 0; i < 10; i++) {
+//                char[] message = new char[1];
+//                char[] key = new char[1];
+//                String value = genRandomText(messageCounter);
+//                message = value.toCharArray();
+//                System.out.println("M = " + value);
+//                boolean validate;
+//                String keyValue;
+//                do {
+//                    keyValue = genRandomText(keyCounter * keyCounter);
+//                    key = keyValue.toCharArray();
+//                    validate = getEncodedKeyMatrix2(key, message);
+//                } while (!validate);
+//                System.out.println("K = " + keyValue);
+//
+//                double[][] encodedKey = keyChecker(key, message.length);
+//                double[][] encodedMessage = codificate(message, encodedKey.length);
+//                double[][] encodedEncryptedMessage = encrypt(encodedMessage, encodedKey);
+//                System.out.println("E = " + getTextMatrix(encodedEncryptedMessage));
+//
+//                double[][] finalCrypt = decrypt(encodedKey, encodedEncryptedMessage);
+//                System.out.println("D = " + getTextMatrix(finalCrypt));
+//                System.out.println("\n\n");
+//                iterations++;
+//                messageCounter++;
+//                System.out.println(iterations);
+//            }
+//            keyCounter++;
+//        } while (true);
+//    }
+
     public static void main(String[] args) {
-        String stringMessage = inputString("Ingrese un mensaje a cifrar: ");
-        System.out.println(stringMessage);
-        char[] message = stringMessage.toCharArray();
-        showInfo("[DEBUG]: Mensaje a cifrar: \n" + Arrays.toString(message) + "\n");
+        while (true) {
+            int option = inputInt("¡Bienvenido! (Cifrado de Hill)" +
+                    "\n\t1. Encriptar una cadena de texto." +
+                    "\n\t2. Desencriptar una cadena de texto." +
+                    "\n\t3. Ver espacio de caracteres permitidos." +
+                    "\n\t0. Salir." +
+                    "\nSelccione una opción:");
 
-        double[][] encodedKey = getEncodedKeyMatrix(message);
-        showInfo("[DEBUG]: Llave codificada:\n" + showMatrix(encodedKey));
+            if (option == 0) System.exit(0);
 
-        double[][] encodedMessage = codificate(message, encodedKey.length);
-        showInfo("[DEBUG]: Mensaje codificado:\n" + showMatrix(encodedMessage));
+            char[] message;
+            double[][] encodedKey;
+            switch (option) {
+                case 1 -> {
+                    message = inputString("Ingrese una cadena de texto para cifrar: ").toCharArray();
+                    showInfo("[DEBUG]: Cadena ingresada: \n" + Arrays.toString(message) + "\n");
 
-        double[][] encodedEncryptedMessage = encrypt(encodedMessage, encodedKey);
-        showInfo("[DEBUG]: Mensaje encriptado codificado: \n" + showMatrix(encodedEncryptedMessage));
+                    encodedKey = getEncodedKeyMatrix(message);
+                    showInfo("[DEBUG]: Llave ingresada codificada: \n" + showMatrix(encodedKey));
 
-        StringBuilder decodedEncryptedMessage = new StringBuilder();
+                    double[][] encodedMessage = codificate(message, encodedKey.length);
+                    showInfo("[DEBUG]: Cadena codificada:\n" + showMatrix(encodedMessage));
 
+                    double[][] encodedEncryptedMessage = encrypt(encodedMessage, encodedKey);
+                    showInfo("[DEBUG]: Cadena encriptada codificada: \n" + showMatrix(encodedEncryptedMessage));
+
+                    showInfo("Resultado de la encriptación: \n" + getTextMatrix(encodedEncryptedMessage));
+                }
+                case 2 -> {
+                    message = inputString("Ingrese una cadena de texto para descifrar: ").toCharArray();
+                    showInfo("[DEBUG]: Cadena de texto ingresada: \n" + Arrays.toString(message) + "\n");
+
+                    encodedKey = getEncodedKeyMatrix(message);
+                    showInfo("[DEBUG]: Llave ingresada codificada: \n" + showMatrix(encodedKey));
+
+                    double[][] encodedEncryptedMessage = codificate(message, encodedKey.length);
+                    double[][] decrypt = decrypt(encodedKey, encodedEncryptedMessage);
+
+                    showInfo("[DEBUG]: Mensaje codificado desencriptado: \n" + showMatrix(decrypt));
+                    showInfo("Resultado de la desencriptación: \n" + getTextMatrix(decrypt));
+                }
+                case 3 -> showInfo(Arrays.toString(CHARACTERS_SPACE));
+                default -> showInfo("La opción ingresada no es válida.");
+            }
+        }
+    }
+
+    public static String getTextMatrix(double[][] matrix) {
         int counter = 0;
-        for (int i = 0; i < encodedEncryptedMessage[0].length; i++) {
-
-            for (double[] doubles : encodedEncryptedMessage) {
-                char value = CHARACTERS_SPACE[(int) doubles[counter]];
-                decodedEncryptedMessage.append(value);
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < matrix[0].length; i++) {
+            for (double[] doubles : matrix) {
+                stringBuilder.append(CHARACTERS_SPACE[(int) doubles[counter]]);
             }
 
-            if (counter == encodedEncryptedMessage.length) {
+            if (counter == matrix[0].length) {
                 counter = 0;
             } else {
                 counter++;
             }
         }
-        showInfo("[DEBUG]: Mensaje encriptado decodificado: \n" + decodedEncryptedMessage + "\n");
-
-
-        System.out.println("------------{DECRYPT}-------------");
-        double[][] finalCrypt = desencriptar(encodedKey, encodedEncryptedMessage);
-        showInfo("[DEBUG]: Mensaje codificado desencriptado: \n" + showMatrix(finalCrypt));
-        StringBuilder mensajeFinal = new StringBuilder();
-        System.out.println("Mensaje desencriptado \n");
-
-        counter = 0;
-        for (int i = 0; i < finalCrypt[0].length; i++) {
-
-            for (int j = 0; j < finalCrypt.length; j++) {
-
-                System.out.println("num array =" + finalCrypt[j][counter]);
-                System.out.println("j =" + j);
-                System.out.println("c =" + counter);
-                char value = CHARACTERS_SPACE[(int) finalCrypt[j][counter]];
-                mensajeFinal.append(value);
-            }
-
-            if (counter == finalCrypt[0].length) {
-                counter = 0;
-            } else {
-                counter++;
-            }
-        }
-
-        System.out.println(mensajeFinal);
-
+        return stringBuilder.toString();
     }
 
     public static double[][] encrypt(double[][] encodedMessage, double[][] encodedKey) {
@@ -98,7 +159,6 @@ public class Hill {
                 encryptedMessage[i][j] = (int) (aux[i][j] % CHARACTERS_SPACE.length);
             }
         }
-
         return encryptedMessage;
     }
     //primero sacar el inverso modular de la clave
@@ -106,53 +166,43 @@ public class Hill {
     //se saca la inversa de la matriz de la clave y multiplicar por la determinante de la matriz clave y ese resultado multiplicar por el inverso modular
     //sacarle el modulo
 
-    public static double[][] desencriptar(double[][] encodedKey, double[][] encryptedMessage) {
+    public static double[][] decrypt(double[][] encodedKey, double[][] encryptedMessage) {
         double keyDeterminant = Math.abs(Math.rint(getDeterminantOf(new Matrix(encodedKey))));
-        long inversoModular = (new BigInteger(String.valueOf((int) keyDeterminant)).modInverse(new BigInteger(String.valueOf(CHARACTERS_SPACE.length))).longValue());
+        long modInverse = (new BigInteger(String.valueOf((int) keyDeterminant)).modInverse(new BigInteger(String.valueOf(CHARACTERS_SPACE.length))).longValue());
 
-        //pasandolo a realmatrix
-        RealMatrix kRealMatrix = new Array2DRowRealMatrix(encodedKey);
-        RealMatrix kInverted = MatrixUtils.inverse(kRealMatrix);
+        double[][] invertedKey = MatrixUtils.inverse(new Array2DRowRealMatrix(encodedKey)).getData();
+        double[][] invertedByDeterminant = new double[invertedKey.length][invertedKey[0].length];
 
-        double[][] kInvedtedInDouble = kInverted.getData();
-
-        //Multiplicar por la determinante de la matriz
-
-        double[][] invertidaPorLaDeter = new double[kInvedtedInDouble.length][kInvedtedInDouble[0].length];
-
-        for (int i = 0; i < kInvedtedInDouble.length; i++) {
-            for (int j = 0; j < kInvedtedInDouble[0].length; j++) {
-                invertidaPorLaDeter[i][j] = kInvedtedInDouble[i][j] * keyDeterminant;
-                invertidaPorLaDeter[i][j] *= inversoModular;
+        for (int i = 0; i < invertedKey.length; i++) {
+            for (int j = 0; j < invertedKey[0].length; j++) {
+                invertedByDeterminant[i][j] = invertedKey[i][j] * keyDeterminant;
+                invertedByDeterminant[i][j] *= modInverse;
             }
         }
 
-        RealMatrix claveFinal = new Array2DRowRealMatrix(invertidaPorLaDeter);
+        RealMatrix finalKey = new Array2DRowRealMatrix(invertedByDeterminant);
 
         //Mensaje a double y a RealMatrix
-        double[][] mensajeDouble = new double[encryptedMessage.length][encryptedMessage[0].length];
-        for (int i = 0; i < mensajeDouble.length; i++) {
-            for (int j = 0; j < mensajeDouble[0].length; j++) {
-                mensajeDouble[i][j] = encryptedMessage[i][j];
+        double[][] doubleMessage = new double[encryptedMessage.length][encryptedMessage[0].length];
+        for (int i = 0; i < doubleMessage.length; i++) {
+            for (int j = 0; j < doubleMessage[0].length; j++) {
+                doubleMessage[i][j] = encryptedMessage[i][j];
             }
         }
-        RealMatrix mensajeRealMatrix = new Array2DRowRealMatrix(mensajeDouble);
+        RealMatrix realMessageMatrix = new Array2DRowRealMatrix(doubleMessage);
 
         //Multiplicar y sacar el modulo
-        RealMatrix multiplicacion = claveFinal.multiply(mensajeRealMatrix);
+        double[][] multiplyResult = finalKey.multiply(realMessageMatrix).getData();
 
-        double[][] multiplicacionDouble = multiplicacion.getData();
-
-        double[][] aux = new double[multiplicacionDouble.length][multiplicacionDouble[0].length];
-        for (int i = 0; i < multiplicacionDouble.length; i++) {
-            for (int j = 0; j < multiplicacionDouble[0].length; j++) {
-                if (multiplicacionDouble[i][j] < 0) {
-                    aux[i][j] = CHARACTERS_SPACE.length - Math.abs(multiplicacionDouble[i][j] % CHARACTERS_SPACE.length);
-                    aux[i][j] = Math.rint(aux[i][j]);
+        double[][] aux = new double[multiplyResult.length][multiplyResult[0].length];
+        for (int i = 0; i < multiplyResult.length; i++) {
+            for (int j = 0; j < multiplyResult[0].length; j++) {
+                if (multiplyResult[i][j] < 0) {
+                    aux[i][j] = CHARACTERS_SPACE.length - Math.abs(multiplyResult[i][j] % CHARACTERS_SPACE.length);
                 } else {
-                    aux[i][j] = (multiplicacionDouble[i][j]) % CHARACTERS_SPACE.length;
-                    aux[i][j] = Math.rint(aux[i][j]);
+                    aux[i][j] = (multiplyResult[i][j]) % CHARACTERS_SPACE.length;
                 }
+                aux[i][j] = Math.rint(aux[i][j]);
 
                 if (aux[i][j] == CHARACTERS_SPACE.length) {
                     aux[i][j] = 0;
@@ -178,25 +228,18 @@ public class Hill {
         int aux = ((message.length % split == 0) ? (message.length / split) : ((message.length / split) + 1));
         double[][] msgMatrix = new double[split][aux];
         int counter = 0;
-        double[] extras = new double[(aux * split) - message.length];
-        int exCounter = 0;
 
         for (int i = 0; i < msgMatrix[0].length; i++) {
             for (int j = 0; j < split; j++) {
-                int extra;
                 if (counter >= message.length) {
-                    extra = (int) (Math.random() * CHARACTERS_SPACE.length);
-                    msgMatrix[j][i] = extra;
-                    extras[exCounter] = extra;
+                    msgMatrix[j][i] = 26;
                     counter++;
-                    exCounter++;
                 } else {
                     msgMatrix[j][i] = getPosition(message[counter]);
                     counter++;
                 }
             }
         }
-        showInfo("[DEBUG]: Caracteres extras: " + Arrays.toString(extras));
         return msgMatrix;
     }
 
@@ -240,6 +283,7 @@ public class Hill {
         try {
             Matrix matrix = new Matrix(keyChecker(key, message.length));
             double determinant = Math.abs(Math.rint(getDeterminantOf(matrix)));
+            long modInverse = (new BigInteger(String.valueOf((int) determinant)).modInverse(new BigInteger(String.valueOf(CHARACTERS_SPACE.length))).longValue());
             if (determinant == 0 || determinant == CHARACTERS_SPACE.length || determinant % CHARACTERS_SPACE.length == 0) {
                 showInfo("La llave ingresada no sirve para encriptar, seleccione otra.");
                 return getEncodedKeyMatrix(message);
@@ -334,5 +378,15 @@ public class Hill {
      */
     public static void showInfo(Object message) {
         System.out.println(message);
+    }
+
+    public static int inputInt(Object message) {
+        showInfo(message);
+        try {
+            return Integer.parseInt(SCANNER.nextLine());
+        } catch (Exception e) {
+            showInfo("El valor ingresado es inválido.");
+            return inputInt(message);
+        }
     }
 }
